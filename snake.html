@@ -1,169 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Rat & Cheese Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🐍 Realistic Snake Game</title>
   <style>
     body {
       margin: 0;
-      padding: 1rem;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #55422e, #a68f66);
-      color: white;
+      background: linear-gradient(to bottom right, #222, #111);
+      font-family: sans-serif;
       text-align: center;
+      color: white;
     }
 
     h2 {
-      margin-bottom: 0.5rem;
+      margin: 1rem;
     }
 
     canvas {
-      background-color: #fffbe6;
-      border: 5px solid #333;
       display: block;
       margin: 0 auto;
-      box-shadow: 0 0 20px #000;
+      border: 4px solid #444;
+      background: #1d1d1d;
+      box-shadow: 0 0 20px #000 inset;
     }
 
-    .score {
-      font-size: 1.2rem;
+    .menu, .submenu, .game-over, .pause-menu {
       margin-top: 1rem;
     }
 
-    .reset-btn {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
+    button {
+      padding: 10px 20px;
+      margin: 0.5rem;
       font-size: 1rem;
-      background: #c97d30;
-      color: white;
       border: none;
       border-radius: 8px;
+      background: #44a;
+      color: white;
       cursor: pointer;
-      transition: background 0.2s ease;
     }
 
-    .reset-btn:hover {
-      background: #d08b3e;
+    button:hover {
+      background: #559;
+    }
+
+    #pauseBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 14px;
+      background: #c72;
+    }
+
+    #pauseBtn:hover {
+      background: #e85;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input[type=range] {
+      width: 200px;
+    }
+
+    .submenu {
+      display: none;
+    }
+
+    .food-preview {
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .skin-preview {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin: 5px;
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    #pauseOptions {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-  <h2>🐭 Rat & Cheese Game</h2>
+  <h2>🐍 Realistic Snake Game</h2>
+  <button id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+  <div id="pauseOptions">
+    <button onclick="togglePause()">▶ Resume</button><br>
+    <button onclick="resetGame()">🔁 Restart</button><br>
+    <button onclick="backToMainMenu()">⬅ Main Menu</button>
+  </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <div class="score">Cheese Collected: <span id="score">0</span></div>
-  <button class="reset-btn" onclick="startGame()">🔁 Reset</button>
+
+  <!-- Main Menu -->
+  <div class="menu" id="mainMenu">
+    <button onclick="openSubMenu('playMenu')">▶ Play</button>
+    <button onclick="openSubMenu('skinsMenu')">🎨 Snake Skins</button>
+    <button onclick="openSubMenu('foodMenu')">🍎 Food</button>
+    <button onclick="openSubMenu('settingsMenu')">⚙️ Settings</button>
+  </div>
+
+  <!-- Submenus -->
+  <div class="submenu" id="playMenu">
+    <p>Select Difficulty</p>
+    <button onclick="startGame('easy')">Easy</button>
+    <button onclick="startGame('hard')">Medium</button>
+    <button onclick="startGame('insane')">Hard</button>
+    <button onclick="backToMainMenu()">⬅ Back</button>
+  </div>
+
+  <div class="submenu" id="skinsMenu">
+    <p>Choose Snake Skin</p>
+    <div>
+      <span class="skin-preview" style="background:#597539" onclick="setSkin(0)"></span>
+      <span class="skin-preview" style="background:#ff9933" onclick="setSkin(1)"></span>
+      <span class="skin-preview" style="background:#00c896" onclick="setSkin(2)"></span>
+      <span class="skin-preview" style="background:#9999ff" onclick="setSkin(3)"></span>
+    </div>
+    <button onclick="backToMainMenu()">⬅ Back</button>
+  </div>
+
+  <div class="submenu" id="foodMenu">
+    <p>Select Food</p>
+    <div>
+      <span class="food-preview" onclick="setFoodIcon('🍎')">🍎</span>
+      <span class="food-preview" onclick="setFoodIcon('🍇')">🍇</span>
+      <span class="food-preview" onclick="setFoodIcon('🍕')">🍕</span>
+      <span class="food-preview" onclick="setFoodIcon('🧀')">🧀</span>
+    </div>
+    <button onclick="backToMainMenu()">⬅ Back</button>
+  </div>
+
+  <div class="submenu" id="settingsMenu">
+    <p>Settings</p>
+    <label><input type="checkbox" id="muteToggle"> 🔇 Mute Sound</label><br>
+    <label>Volume <input type="range" min="0" max="100" value="50" id="volumeSlider"></label>
+    <br>
+    <button onclick="backToMainMenu()">⬅ Back</button>
+  </div>
+
+  <div class="game-over" id="gameOver" style="display:none">
+    <p id="finalScore"></p>
+    <button onclick="resetGame()">🔁 Restart Game</button>
+  </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
-    let rat, cheese, dx, dy, score, gameInterval;
-    let keyPressed = false;
+    let snake, food, dx, dy, score, intervalTime, gameInterval, paused = false;
+    let foodIcon = "🍎";
+    let touchStartX = 0, touchStartY = 0;
+    let volume = 50;
+    let isMuted = false;
+    let skinIndex = 0;
 
-    function startGame() {
-      dx = 1;
-      dy = 0;
-      score = 0;
-      rat = [
+    const pauseBtn = document.getElementById("pauseBtn");
+    const pauseOptions = document.getElementById("pauseOptions");
+
+    const snakeSkins = [
+      ["#597539", "#3c5f2d", "#4b7038"],
+      ["#ff9933", "#e88c2a", "#ffb366"],
+      ["#00c896", "#00a97a", "#00ffcc"],
+      ["#9999ff", "#7f7fff", "#b3b3ff"]
+    ];
+
+    function startGame(difficulty) {
+      closeAllMenus();
+      pauseBtn.style.display = "inline-block";
+      pauseOptions.style.display = "none";
+      paused = false;
+
+      intervalTime = difficulty === "easy" ? 200 : difficulty === "hard" ? 120 : 80;
+      dx = 1; dy = 0; score = 0;
+      snake = [
         { x: 8, y: 10 },
         { x: 7, y: 10 },
         { x: 6, y: 10 }
       ];
-      placeCheese();
-      document.getElementById('score').textContent = score;
+      placeFood();
       clearInterval(gameInterval);
-      gameInterval = setInterval(draw, 500); // 0.5 seconds
+      gameInterval = setInterval(draw, intervalTime);
+    }
+
+    function resetGame() {
+      document.getElementById("gameOver").style.display = "none";
+      pauseBtn.style.display = "none";
+      pauseOptions.style.display = "none";
+      clearInterval(gameInterval);
+      openSubMenu('mainMenu');
+    }
+
+    function togglePause() {
+      paused = !paused;
+      pauseBtn.innerText = paused ? "▶ Resume" : "⏸ Pause";
+      pauseOptions.style.display = paused ? "block" : "none";
     }
 
     function draw() {
-      keyPressed = false;
+      if (paused) return;
 
-      // Clear canvas
-      ctx.fillStyle = '#fffbe6';
+      ctx.fillStyle = "#1d1d1d";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw cheese
-      ctx.fillStyle = '#ffd700';
-      ctx.beginPath();
-      ctx.moveTo(cheese.x * gridSize + 10, cheese.y * gridSize + 5);
-      ctx.lineTo(cheese.x * gridSize + 15, cheese.y * gridSize + 15);
-      ctx.lineTo(cheese.x * gridSize + 5, cheese.y * gridSize + 15);
-      ctx.closePath();
-      ctx.fill();
+      ctx.font = "20px serif";
+      ctx.fillText(foodIcon, food.x * gridSize + 4, food.y * gridSize + 18);
 
-      // Move rat
-      const head = { x: rat[0].x + dx, y: rat[0].y + dy };
-
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
       if (
         head.x < 0 || head.x >= tileCount ||
         head.y < 0 || head.y >= tileCount ||
-        rat.some(s => s.x === head.x && s.y === head.y)
+        snake.some(s => s.x === head.x && s.y === head.y)
       ) {
         clearInterval(gameInterval);
-        alert('Game Over! Cheese Collected: ' + score);
+        document.getElementById("finalScore").textContent = `Game Over! Score: ${score}`;
+        document.getElementById("gameOver").style.display = "block";
+        pauseBtn.style.display = "none";
+        pauseOptions.style.display = "none";
         return;
       }
 
-      rat.unshift(head);
-
-      if (head.x === cheese.x && head.y === cheese.y) {
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
         score++;
-        document.getElementById('score').textContent = score;
-        placeCheese();
+        placeFood();
       } else {
-        rat.pop();
+        snake.pop();
       }
 
-      // Draw rat
-      for (let i = 0; i < rat.length; i++) {
-        const part = rat[i];
-        const isHead = i === 0;
+      const colors = snakeSkins[skinIndex];
+      for (let i = 0; i < snake.length; i++) {
+        const part = snake[i];
+        const radius = Math.max(4, 9 - i * 0.3);
+        ctx.beginPath();
+        ctx.arc(part.x * gridSize + 10, part.y * gridSize + 10, radius, 0, Math.PI * 2);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
 
-        // Head with ears
-        if (isHead) {
-          ctx.fillStyle = '#5c4033';
+        if (i === 0) {
+          ctx.fillStyle = "#fff";
           ctx.beginPath();
-          ctx.arc(part.x * gridSize + 10, part.y * gridSize + 10, 9, 0, Math.PI * 2);
+          ctx.arc(part.x * gridSize + 6, part.y * gridSize + 6, 2, 0, Math.PI * 2);
+          ctx.arc(part.x * gridSize + 14, part.y * gridSize + 6, 2, 0, Math.PI * 2);
           ctx.fill();
 
-          // Ears
-          ctx.fillStyle = '#7c5f48';
-          ctx.beginPath();
-          ctx.arc(part.x * gridSize + 6, part.y * gridSize + 6, 3, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(part.x * gridSize + 14, part.y * gridSize + 6, 3, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.fillStyle = '#8b5e3c';
-          ctx.beginPath();
-          ctx.arc(part.x * gridSize + 10, part.y * gridSize + 10, 8, 0, Math.PI * 2);
-          ctx.fill();
+          if (Math.random() > 0.5) {
+            ctx.strokeStyle = "red";
+            ctx.beginPath();
+            ctx.moveTo(part.x * gridSize + 10, part.y * gridSize + 2);
+            ctx.lineTo(part.x * gridSize + 10, part.y * gridSize - 6);
+            ctx.stroke();
+          }
         }
       }
     }
 
-    function placeCheese() {
-      cheese = {
+    function placeFood() {
+      food = {
         x: Math.floor(Math.random() * tileCount),
         y: Math.floor(Math.random() * tileCount)
       };
-      if (rat.some(s => s.x === cheese.x && s.y === cheese.y)) {
-        placeCheese(); // retry if on rat
-      }
+      if (snake.some(s => s.x === food.x && s.y === food.y)) placeFood();
     }
 
     function setDirection(x, y) {
-      if (keyPressed) return;
       if (dx === -x && dy === -y) return;
-      dx = x;
-      dy = y;
-      keyPressed = true;
+      dx = x; dy = y;
     }
 
-    document.addEventListener('keydown', (e) => {
+    function setFoodIcon(icon) {
+      foodIcon = icon;
+    }
+
+    function setSkin(index) {
+      skinIndex = index;
+    }
+
+    function openSubMenu(menuId) {
+      closeAllMenus();
+      document.getElementById(menuId).style.display = "block";
+    }
+
+    function backToMainMenu() {
+      resetGame();
+    }
+
+    function closeAllMenus() {
+      document.querySelectorAll('.submenu, .menu').forEach(el => el.style.display = 'none');
+    }
+
+    document.getElementById('muteToggle').addEventListener('change', function () {
+      isMuted = this.checked;
+    });
+
+    document.getElementById('volumeSlider').addEventListener('input', function () {
+      volume = this.value;
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === " ") togglePause();
       switch (e.key) {
         case 'ArrowUp': setDirection(0, -1); break;
         case 'ArrowDown': setDirection(0, 1); break;
@@ -172,7 +322,24 @@
       }
     });
 
-    startGame();
+    canvas.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    });
+
+    canvas.addEventListener('touchmove', e => {
+      if (!touchStartX || !touchStartY) return;
+      const dxTouch = e.touches[0].clientX - touchStartX;
+      const dyTouch = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
+        dxTouch > 0 ? setDirection(1, 0) : setDirection(-1, 0);
+      } else {
+        dyTouch > 0 ? setDirection(0, 1) : setDirection(0, -1);
+      }
+      touchStartX = 0;
+      touchStartY = 0;
+    });
   </script>
 </body>
 </html>
