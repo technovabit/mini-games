@@ -4,25 +4,10 @@
   <meta charset="UTF-8" />
   <title>Mini Games Zone</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- SEO Meta Tags -->
-<meta name="description" content="Play fun and free mini games like Tic Tac Toe, Snake (Rat & Cheese), and Pong. Perfect for quick entertainment and time pass.">
-<meta name="keywords" content="free mini games, online games, tic tac toe, snake game, pong, browser games, time pass games, 2-player games">
-<meta name="author" content="Ravi">
-<meta name="robots" content="index, follow">
-
-<!-- Open Graph Tags for Social Sharing -->
-<meta property="og:title" content="Free Time Pass Games" />
-<meta property="og:description" content="Enjoy quick and fun browser-based games like Tic Tac Toe, Rat & Cheese, and Pong. No downloads needed!" />
-<meta property="og:image" content="https://example.com/preview.jpg" />
-<meta property="og:url" content="https://example.com/" />
-<meta property="og:type" content="website" />
-
-<!-- Twitter Card Tags -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Mini Games Zone - Free Time Pass Games" />
-<meta name="twitter:description" content="Play simple and addictive games in your browser for free." />
-<meta name="twitter:image" content="https://example.com/preview.jpg" />
-
+  <meta name="description" content="Play fun and free mini games like Tic Tac Toe, Snake (Rat & Cheese), and Pong. Perfect for quick entertainment and time pass.">
+  <meta name="keywords" content="free mini games, online games, tic tac toe, snake game, pong, browser games, time pass games, 2-player games, flappy bird, dodge, brick breaker">
+  <meta name="author" content="Ravi">
+  <meta name="robots" content="index, follow">
   <style>
     * {
       box-sizing: border-box;
@@ -47,12 +32,28 @@
       text-shadow: 2px 2px #000;
     }
 
+    .controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+
+    .controls input,
+    .controls select {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+
     .game-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
 
     .card {
@@ -104,36 +105,88 @@
   </style>
 </head>
 <body>
-  <h1>🎮 Time pass games</h1>
+  <h1>🎮 Time Pass Games</h1>
 
-  <div class="game-grid">
-    <div class="card">
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search games...">
+    <select id="categoryFilter">
+      <option value="all">All Categories</option>
+      <option value="classic">Classic</option>
+      <option value="action">Action</option>
+      <option value="arcade">Arcade</option>
+    </select>
+  </div>
+
+  <div class="game-grid" id="gameGrid">
+    <div class="card" data-name="Tic Tac Toe" data-category="classic">
       <h2>🧠 Tic Tac Toe</h2>
       <p>Classic 2-player game. Can you get 3 in a row?</p>
       <a href="tic-tac-toe.html">Play Now</a>
     </div>
 
-    <div class="card">
-      <h2>🐍 snake Game</h2>
+    <div class="card" data-name="Flappy Bird" data-category="arcade">
+      <h2>🐦 Flappy Bird</h2>
+      <p>Tap to fly through pipes! A clone of the classic flier.</p>
+      <a href="flappy.html">Play Now</a>
+    </div>
+
+    <div class="card" data-name="Snake Game" data-category="classic">
+      <h2>🐍 Snake Game</h2>
       <p>Chomp cheese and avoid the wall! A rodent twist on Snake.</p>
       <a href="snake.html">Play Now</a>
     </div>
 
-    <div class="card">
+    <div class="card" data-name="Pong" data-category="classic">
       <h2>🏓 Pong</h2>
       <p>The original paddle battle. Versus AI!</p>
       <a href="pong.html">Play Now</a>
     </div>
 
-    <div class="card">
+    <div class="card" data-name="Brick Breaker" data-category="arcade">
       <h2>🧱 Brick Breaker</h2>
       <p>Bounce the ball and destroy all the bricks!</p>
       <a href="brick breaker.html">Play Now</a>
+    </div>
+
+    <div class="card" data-name="Dodge Rocks" data-category="action">
+      <h2>🚧 Dodge Rocks</h2>
+      <p>Move left and right to avoid falling red rocks!</p>
+      <a href="dodge.html">Play Now</a>
+    </div>
+    
+    <div class="card" data-name="Street Runner" data-category="action">
+      <h2>🏃 Street Runner</h2>
+      <p>Run, jump, avoid obstacles and collect coins!</p>
+      <a href="runner.html">Play Now</a>
     </div>
   </div>
 
   <footer>
     &copy; 2025 Mini Games Zone | Made with ❤️ by Ravi
   </footer>
+
+  <script>
+    const searchInput = document.getElementById("searchInput");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const cards = document.querySelectorAll(".card");
+
+    function filterGames() {
+      const search = searchInput.value.toLowerCase();
+      const category = categoryFilter.value;
+
+      cards.forEach(card => {
+        const name = card.getAttribute("data-name").toLowerCase();
+        const cat = card.getAttribute("data-category");
+
+        const matchesSearch = name.includes(search);
+        const matchesCategory = category === "all" || category === cat;
+
+        card.style.display = matchesSearch && matchesCategory ? "block" : "none";
+      });
+    }
+
+    searchInput.addEventListener("input", filterGames);
+    categoryFilter.addEventListener("change", filterGames);
+  </script>
 </body>
 </html>
