@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dodge the Falling Rocks</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #111;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 1rem 0;
+      color: #00ffff;
+    }
+
+    #gameArea {
+      width: 100%;
+      max-width: 600px;
+      height: 500px;
+      margin: auto;
+      border: 2px solid #00ffff;
+      position: relative;
+      background-color: #222;
+      overflow: hidden;
+    }
+
+    .player {
+      width: 40px;
+      height: 40px;
+      background: lime;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .rock {
+      width: 40px;
+      height: 40px;
+      background: red;
+      position: absolute;
+      top: 0;
+      animation: fall 3s linear infinite;
+    }
+
+    @keyframes fall {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+
+    #gameOver {
+      font-size: 2rem;
+      color: red;
+      display: none;
+      margin-top: 1rem;
+    }
+
+    #restart {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #00ffff;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #restart:hover {
+      background: #00e6e6;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚧 Dodge the Falling Rocks</h1>
+  <div id="gameArea">
+    <div class="player" id="player"></div>
+  </div>
+  <div id="gameOver">💀 Game Over!</div>
+  <button id="restart" onclick="startGame()">Restart Game</button>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const player = document.getElementById("player");
+    const gameOverText = document.getElementById("gameOver");
+    const restartBtn = document.getElementById("restart");
+
+    let isGameOver = false;
+    let rocks = [];
+    let speed = 2;
+    let spawnRate = 1500;
+
+    function startGame() {
+      isGameOver = false;
+      gameOverText.style.display = "none";
+      restartBtn.style.display = "none";
+      rocks.forEach(rock => rock.remove());
+      rocks = [];
+      player.style.left = "50%";
+      spawnRocks();
+    }
+
+    function spawnRocks() {
+      if (isGameOver) return;
+
+      const rock = document.createElement("div");
+      rock.classList.add("rock");
+      const pos = Math.floor(Math.random() * (gameArea.clientWidth - 40));
+      rock.style.left = `${pos}px`;
+
+      gameArea.appendChild(rock);
+      rocks.push(rock);
+
+      let y = 0;
+      const fall = setInterval(() => {
+        if (isGameOver) return clearInterval(fall);
+
+        y += speed;
+        rock.style.top = `${y}px`;
+
+        const rockRect = rock.getBoundingClientRect();
+        const playerRect = player.getBoundingClientRect();
+
+        if (
+          rockRect.bottom >= playerRect.top &&
+          rockRect.left < playerRect.right &&
+          rockRect.right > playerRect.left
+        ) {
+          gameOver();
+          clearInterval(fall);
+        }
+
+        if (y > gameArea.clientHeight) {
+          rock.remove();
+          rocks = rocks.filter(r => r !== rock);
+          clearInterval(fall);
+        }
+      }, 16);
+
+      setTimeout(spawnRocks, spawnRate);
+    }
+
+    function gameOver() {
+      isGameOver = true;
+      gameOverText.style.display = "block";
+      restartBtn.style.display = "inline-block";
+    }
+
+    document.addEventListener("keydown", e => {
+      if (isGameOver) return;
+
+      const step = 30;
+      const left = parseInt(window.getComputedStyle(player).left);
+      if (e.key === "ArrowLeft" && left > 0) {
+        player.style.left = `${left - step}px`;
+      } else if (
+        e.key === "ArrowRight" &&
+        left + player.clientWidth < gameArea.clientWidth
+      ) {
+        player.style.left = `${left + step}px`;
+      }
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
